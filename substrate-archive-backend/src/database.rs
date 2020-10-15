@@ -21,9 +21,10 @@ use kvdb::KeyValueDB;
 use kvdb_rocksdb::{Database, DatabaseConfig};
 use sp_database::{ChangeRef, ColumnId, Database as DatabaseTrait, Transaction};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use substrate_archive_common::error::Result;
-
-pub type KeyValuePair = (Box<[u8]>, Box<[u8]>);
+use substrate_archive_common::{
+    error::Result,
+    Database::{KeyValuePair, ReadOnlyDatabaseTrait},
+};
 
 pub struct Config {
     /// track how many times try_catch_up_with_primary is called
@@ -45,7 +46,7 @@ impl std::fmt::Debug for ReadOnlyDatabase {
     }
 }
 
-impl ReadOnlyDatabase {
+impl ReadOnlyDatabaseTrait for ReadOnlyDatabase {
     pub fn open(config: Config, path: &str) -> Result<Self> {
         let inner = Database::open(&config.config, path)?;
         inner.try_catch_up_with_primary()?;

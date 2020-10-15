@@ -45,9 +45,10 @@ use sp_runtime::{
 };
 use std::{convert::TryInto, sync::Arc};
 use substrate_archive_common::error::Result;
+use substrate_archive_common::Trait::ReadOnlyDatabaseTrait;
 
 pub struct ReadOnlyBackend<Block: BlockT> {
-    db: Arc<ReadOnlyDatabase>,
+    db: Arc<ReadOnlyDatabaseTrait>,
     storage: Arc<StateVault<Block>>,
 }
 
@@ -55,13 +56,13 @@ impl<Block> ReadOnlyBackend<Block>
 where
     Block: BlockT,
 {
-    pub fn new(db: Arc<ReadOnlyDatabase>, prefix_keys: bool) -> Self {
+    pub fn new(db: Arc<ReadOnlyDatabaseTrait>, prefix_keys: bool) -> Self {
         let vault = Arc::new(StateVault::new(db.clone(), prefix_keys));
         Self { db, storage: vault }
     }
 
     /// get a reference to the backing database
-    pub fn backing_db(&self) -> Arc<ReadOnlyDatabase> {
+    pub fn backing_db(&self) -> Arc<ReadOnlyDatabaseTrait> {
         self.db.clone()
     }
 
