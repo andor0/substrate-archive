@@ -17,7 +17,7 @@ mod cli_opts;
 mod config;
 
 use anyhow::Result;
-use node_template_runtime::{self as runtime, opaque::Block};
+use node_template_runtime::{self as runtime, Block};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use substrate_archive::{Archive, ArchiveBuilder};
@@ -26,7 +26,7 @@ pub fn main() -> Result<()> {
     let config = config::Config::new()?;
     substrate_archive::init_logger(config.cli().log_level, log::LevelFilter::Debug);
 
-    let archive = ArchiveBuilder::<Block, runtime::RuntimeApi, node_template::service::Executor> {
+    let mut archive = ArchiveBuilder::<Block, runtime::RuntimeApi, node_template::service::Executor> {
         block_workers: config.block_workers(),
         wasm_pages: config.wasm_pages(),
         cache_size: config.cache_size(),
@@ -36,6 +36,7 @@ pub fn main() -> Result<()> {
     .pg_url(config.psql_conf().url())
     .chain_spec(Box::new(config.cli().chain_spec.clone()))
     .build()?;
+    archive.drive()?;
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -44,7 +45,11 @@ pub fn main() -> Result<()> {
         r.store(false, Ordering::SeqCst);
     })
     .expect("Error setting Ctrl-C handler");
-    while running.load(Ordering::SeqCst) {}
+
+    let hundred_millis = std::time::Duration::from_millis(100);
+    while running.load(Ordering::SeqCst) {
+        std::thread::sleep(hundred_millis);
+    }
     archive.shutdown()?;
     Ok(())
 }

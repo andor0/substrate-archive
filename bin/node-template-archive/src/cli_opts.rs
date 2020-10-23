@@ -51,7 +51,7 @@ impl CliOpts {
                 path => {
                     chain_spec = node_template::chain_spec::ChainSpec::from_json_file(
                         std::path::PathBuf::from(path.expect("checked for existence; qed")),
-                    )
+                    ).expect("Chain spec could not be loaded")
                 }
             }
         } else {
@@ -60,7 +60,7 @@ impl CliOpts {
         CliOpts {
             file: PathBuf::from(file),
             log_level,
-            chain_spec: chain_spec.expect("Chain spec could not be loaded"),
+            chain_spec: chain_spec,
         }
     }
 }
